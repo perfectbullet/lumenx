@@ -8,11 +8,11 @@ import VideoQueue from "./VideoQueue";
 import { VideoTask, api } from "@/lib/api";
 import { VideoParams, GRID_COLS_CLASS } from "@/store/projectStore";
 import {
-    DEFAULT_I2V_MODEL_ID,
     type DurationConfig,
     type ModelParamSupport,
-    R2V_SELECTION_MODEL_ID,
+    getVideoModeModelId,
     VIDEO_I2V_MODELS,
+    VIDEO_R2V_MODELS,
 } from "@/lib/modelCatalog";
 import GroupedModelGrid from "@/components/common/GroupedModelGrid";
 
@@ -30,20 +30,17 @@ export default function VideoSidebar({ tasks, onRemix, params, setParams }: Vide
     const audioInputRef = useRef<HTMLInputElement>(null);
     const [showNegative, setShowNegative] = useState(false);
 
-    const currentModelConfig =
-        VIDEO_I2V_MODELS.find(m => m.id === params.model) ??
-        VIDEO_I2V_MODELS.find(m => m.id === DEFAULT_I2V_MODEL_ID) ??
-        VIDEO_I2V_MODELS[0];
-    const r2vSelectionModelName =
-        VIDEO_I2V_MODELS.find((model) => model.id === R2V_SELECTION_MODEL_ID)?.name ??
-        tm("currentR2VModel");
+    const generationMode = params.generationMode === "r2v" ? "r2v" : "i2v";
+    const models = generationMode === "r2v" ? VIDEO_R2V_MODELS : VIDEO_I2V_MODELS;
+    const selectedModelId = getVideoModeModelId(params.model, generationMode);
+    const currentModelConfig = models.find(m => m.id === selectedModelId);
     const modelParams: ModelParamSupport = currentModelConfig?.params ?? {};
 
     const updateParam = (key: string, value: any) => {
         const newParams = { ...params, [key]: value };
         // When model changes, clamp duration and reset model-specific params
         if (key === "model") {
-            const newModelConfig = VIDEO_I2V_MODELS.find(m => m.id === value);
+            const newModelConfig = models.find(m => m.id === value);
             if (newModelConfig?.duration) {
                 const dc = newModelConfig.duration;
                 if (dc.type === 'fixed') {
@@ -168,17 +165,14 @@ export default function VideoSidebar({ tasks, onRemix, params, setParams }: Vide
                                     {tm("basicSettings")}
                                 </h3>
 
-                                {/* Model Selection - R2V mode: only the current catalog-backed R2V model is selectable */}
+                                {/* Model cards and parameter controls follow the active generation mode. */}
                                 <div>
                                     <label className="block text-xs text-text-secondary mb-2">
                                         {tm("modelLabel")}
-                                        {params.generationMode === "r2v" && (
-                                            <span className="text-primary ml-2">{tm("r2vOnly", { name: r2vSelectionModelName })}</span>
-                                        )}
                                     </label>
                                     <GroupedModelGrid
-                                        models={VIDEO_I2V_MODELS}
-                                        selectedId={params.generationMode === "r2v" ? R2V_SELECTION_MODEL_ID : params.model}
+                                        models={models}
+                                        selectedId={selectedModelId}
                                         onSelect={(id) => updateParam("model", id)}
                                     />
                                 </div>

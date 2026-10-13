@@ -19,7 +19,7 @@ import {
 
 import { useProjectStore } from "@/store/projectStore";
 import { api, API_URL, VideoTask } from "@/lib/api";
-import { R2V_SELECTION_MODEL_ID, getR2vRouteModelId, isR2vImageBased } from "@/lib/modelCatalog";
+import { getVideoModeModelId, getR2vRouteModelId, isR2vImageBased } from "@/lib/modelCatalog";
 import { getAssetUrl, getAssetUrlWithTimestamp } from "@/lib/utils";
 import PromptBuilder, { PromptSegment, PromptBuilderRef } from "./PromptBuilder";
 import type { VideoParams } from "@/store/projectStore";
@@ -402,7 +402,7 @@ export default function VideoCreator({ onTaskCreated, remixData, onRemixClear, p
                 }
 
                 // Determine model based on generation mode
-                // R2V mode uses the hidden route model, I2V uses the selected visible model.
+                // Preserve explicit R2V selections; older I2V selections resolve to a counterpart.
                 const actualModel = generationMode === 'r2v' ? getR2vRouteModelId(params.model) : params.model;
                 const r2vImageBased = generationMode === 'r2v' && isR2vImageBased(actualModel);
 
@@ -615,7 +615,10 @@ export default function VideoCreator({ onTaskCreated, remixData, onRemixClear, p
                             <button
                                 onClick={() => {
                                     setGenerationMode("i2v");
-                                    onParamsChange({ generationMode: "i2v" });
+                                    onParamsChange({
+                                        generationMode: "i2v",
+                                        model: getVideoModeModelId(params.model, "i2v"),
+                                    });
                                 }}
                                 className={`px-5 py-2.5 text-sm rounded-lg flex items-center gap-2 transition-all font-medium ${generationMode === "i2v"
                                     ? "bg-primary text-foreground shadow-lg"
@@ -630,7 +633,7 @@ export default function VideoCreator({ onTaskCreated, remixData, onRemixClear, p
                                     setGenerationMode("r2v");
                                     onParamsChange({
                                         generationMode: "r2v",
-                                        model: R2V_SELECTION_MODEL_ID
+                                        model: getVideoModeModelId(params.model, "r2v")
                                     });
                                 }}
                                 className={`px-5 py-2.5 text-sm rounded-lg flex items-center gap-2 transition-all font-medium ${generationMode === "r2v"

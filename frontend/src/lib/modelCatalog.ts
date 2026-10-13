@@ -434,13 +434,30 @@ export const VIDEO_R2V_MODELS: I2VModelConfig[] = SORTED_MODEL_ENTRIES
 export const DEFAULT_R2V_MODEL_ID = VIDEO_R2V_MODELS[0]?.id ?? R2V_SELECTION_MODEL_ID;
 
 /**
- * Given the currently selected I2V model, resolve the correct R2V route model.
- * Each family has its own hidden R2V model (e.g. wan -> wan2.6-r2v, happyhorse -> happyhorse-1.0-r2v).
+ * Keep an explicit R2V choice, or resolve an I2V selection to its R2V counterpart.
  */
 export function getR2vRouteModelId(selectedI2vModelId: string): string {
     const selectedModel = MODEL_CATALOG.models[selectedI2vModelId];
     if (!selectedModel) return R2V_ROUTE_MODEL_ID;
+    // An explicit R2V choice must survive submission, even when its family
+    // contains several R2V models (e.g. PixVerse C1 and V5.6).
+    if (selectedModel.ui.selection_group === 'r2v') return selectedModel.id;
+    const pairedId = selectedI2vModelId.replace(/-i2v$/, '-r2v');
+    if (MODEL_CATALOG.models[pairedId]?.ui.selection_group === 'r2v') return pairedId;
     return R2V_ROUTE_MAP[selectedModel.family] ?? R2V_ROUTE_MODEL_ID;
+}
+
+/** Select a visible model for Motion's active mode, keeping the paired model when available. */
+export function getVideoModeModelId(modelId: string, mode: 'i2v' | 'r2v'): string {
+    const list = mode === 'r2v' ? VIDEO_R2V_MODELS : VIDEO_I2V_MODELS;
+    if (list.some(model => model.id === modelId)) return modelId;
+    const pairedId = mode === 'r2v'
+        ? getR2vRouteModelId(modelId)
+        : modelId.replace(/-r2v$/, '-i2v');
+    if (list.some(model => model.id === pairedId)) return pairedId;
+    const family = MODEL_CATALOG.models[modelId]?.family;
+    return list.find(model => model.family === family)?.id
+        ?? (mode === 'r2v' ? R2V_SELECTION_MODEL_ID : DEFAULT_I2V_MODEL_ID);
 }
 
 /**

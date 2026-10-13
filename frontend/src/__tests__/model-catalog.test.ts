@@ -16,6 +16,8 @@ import {
     getMaxReferenceImages,
     getModelLineEntry,
     getModeGateway,
+    getR2vRouteModelId,
+    getVideoModeModelId,
     resolveModelSettings,
 } from '@/lib/modelCatalog';
 
@@ -33,6 +35,18 @@ afterEach(() => {
 });
 
 describe('model catalog selectors', () => {
+    it('preserves explicit R2V model choices within the same family', () => {
+        expect(getR2vRouteModelId('pixverse-c1-r2v')).toBe('pixverse-c1-r2v');
+        expect(getR2vRouteModelId('viduq3-turbo-r2v')).toBe('viduq3-turbo-r2v');
+    });
+
+    it('switches between paired visible I2V and R2V models', () => {
+        expect(getVideoModeModelId('happyhorse-1.1-i2v', 'r2v')).toBe('happyhorse-1.1-r2v');
+        expect(getVideoModeModelId('pixverse-c1-i2v', 'r2v')).toBe('pixverse-c1-r2v');
+        expect(getVideoModeModelId('viduq3-turbo-r2v', 'i2v')).toBe('viduq3-turbo-i2v');
+        expect(getVideoModeModelId('pixverse-c1-r2v', 'r2v')).toBe('pixverse-c1-r2v');
+    });
+
     it('derives visible model selectors from catalog defaults', () => {
         // Defaults follow the catalog upgrade to wan2.7 (Phase 2, 2026-Q1).
         // The unified `image_model` surface replaces the per-mode t2i/i2i
