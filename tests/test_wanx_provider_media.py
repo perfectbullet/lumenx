@@ -1,6 +1,8 @@
 import base64
 from pathlib import Path
 
+import pytest
+
 from src.models.wanx import WanxModel
 
 
@@ -86,6 +88,45 @@ def _install_fake_uploader(monkeypatch, configured: bool):
 
 
 class TestWanxProviderMediaIntegration:
+    @pytest.mark.parametrize("version", ["1.0", "1.1"])
+    @pytest.mark.parametrize("mode", ["i2v", "r2v", "t2v"])
+    def test_happyhorse_versions_use_http_media_contract(self, monkeypatch, version, mode):
+        monkeypatch.setenv("DASHSCOPE_API_KEY", "test-key")
+        _install_fake_uploader(monkeypatch, configured=False)
+        captured = {}
+        _install_fake_requests(monkeypatch, captured)
+        monkeypatch.setattr(
+            WanxModel, "_create_dashscope_temp_url",
+            lambda self, local_path, model_name: "oss://dashscope-temp/happyhorse-image",
+        )
+        monkeypatch.setattr(
+            WanxModel, "_generate_sdk",
+            lambda *args, **kwargs: pytest.fail("HappyHorse must use its media HTTP contract"),
+        )
+        image = _write_output_file(
+            "uploads/happyhorse_version_reference.png", base64.b64decode(PNG_1X1_BASE64),
+        )
+        kwargs = {"model": f"happyhorse-{version}-{mode}", "ratio": "16:9"}
+        if mode == "i2v":
+            kwargs["img_path"] = image
+        elif mode == "r2v":
+            kwargs["ref_image_urls"] = [image]
+
+        WanxModel({"params": {}}).generate("demo", "output/video/happyhorse_version.mp4", **kwargs)
+
+        payload = captured["create_payload"]
+        assert payload["model"] == f"happyhorse-{version}-{mode}"
+        assert "img_url" not in payload["input"]
+        if mode == "t2v":
+            assert "media" not in payload["input"]
+        else:
+            assert payload["input"]["media"] == [{
+                "type": "first_frame" if mode == "i2v" else "reference_image",
+                "url": "oss://dashscope-temp/happyhorse-image",
+            }]
+            assert captured["create_headers"]["X-DashScope-OssResourceResolve"] == "enable"
+        assert ("ratio" in payload["parameters"]) == (mode != "i2v")
+
     def test_i2v_local_image_without_oss_uses_temp_url_and_header(self, monkeypatch):
         monkeypatch.setenv("DASHSCOPE_API_KEY", "test-key")
         _install_fake_uploader(monkeypatch, configured=False)

@@ -422,15 +422,15 @@ class WanxModel(VideoGenModel):
                     watermark=watermark,
                     extra_headers=extra_media_headers,
                 )
-            elif final_model_name.startswith('happyhorse-1.0-'):
-                # HappyHorse model family (I2V, R2V, T2V, V2V)
+            elif final_model_name.startswith(('happyhorse-1.0-', 'happyhorse-1.1-')):
+                # Both HappyHorse versions use input.media, rather than SDK img_url.
                 resolver_model = final_model_name
                 backend = self._resolve_provider_backend_for_model(resolver_model)
                 temp_url_resolver = self._build_dashscope_temp_url_resolver(resolver_model)
 
                 # Build media array based on model type
                 media = None
-                if final_model_name == 'happyhorse-1.0-i2v':
+                if final_model_name.endswith('-i2v'):
                     # I2V: first_frame image
                     image_ref = img_path or img_url
                     if image_ref:
@@ -445,11 +445,11 @@ class WanxModel(VideoGenModel):
                         media = [{"type": "first_frame", "url": resolved.value}]
                         self._merge_media_headers(extra_media_headers, resolved.headers)
 
-                elif final_model_name == 'happyhorse-1.0-r2v':
+                elif final_model_name.endswith('-r2v'):
                     # R2V: reference images (1-9)
                     ref_image_urls = kwargs.get('ref_image_urls', [])
                     if not ref_image_urls:
-                        raise ValueError("ref_image_urls is required for happyhorse-1.0-r2v")
+                        raise ValueError(f"ref_image_urls is required for {final_model_name}")
                     resolved_refs = resolve_media_inputs(
                         ref_image_urls,
                         model_name=resolver_model,
@@ -808,7 +808,7 @@ class WanxModel(VideoGenModel):
             payload["input"]["media"] = media
 
         # Model-specific parameters
-        if ratio and model_name != "happyhorse-1.0-i2v":
+        if ratio and not model_name.endswith("-i2v"):
             # I2V doesn't support ratio parameter
             payload["parameters"]["ratio"] = ratio
         if seed:
