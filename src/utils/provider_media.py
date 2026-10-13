@@ -1,9 +1,11 @@
 import base64
+import ipaddress
 import mimetypes
 import os
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Callable, Dict, List, Mapping, Optional, Sequence
+from urllib.parse import unquote, urlsplit
 
 from .media_refs import (
     MEDIA_REF_BLOB_URL,
@@ -43,6 +45,28 @@ def _normalize_modality(modality: str) -> str:
     if value in {"image", "audio", "video", "reference_video"}:
         return value
     raise ValueError(f"Unsupported modality '{modality}'")
+
+
+def _resolve_managed_private_url(ref: str, project_root: Optional[str]) -> Optional[str]:
+    """Map LAN /files URLs back to managed output files before cloud submission."""
+    parsed = urlsplit(ref)
+    if parsed.scheme not in {"http", "https"} or not parsed.path.startswith("/files/"):
+        return None
+    host = parsed.hostname or ""
+    if host != "localhost":
+        try:
+            address = ipaddress.ip_address(host)
+        except ValueError:
+            return None
+        if not (address.is_private or address.is_loopback):
+            return None
+
+    relative = unquote(parsed.path[len("/files/"):])
+    local_path = resolve_local_media_path(f"output/{relative}", project_root=project_root)
+    # Resolve containment (including symlinks) and existence without fetching a URL.
+    if not local_path or not os.path.isfile(local_path):
+        raise ValueError(f"Unable to resolve managed media file for '{ref}' under output/.")
+    return local_path
 
 
 def _mode_for_modality(family_config, backend: str, modality: str) -> str:
@@ -277,6 +301,11 @@ def resolve_media_input(
         oss_base_path=oss_base_path,
     )
     local_path = resolve_local_media_path(ref, project_root=project_root)
+    if ref_type == MEDIA_REF_REMOTE_URL:
+        managed_path = _resolve_managed_private_url(ref, project_root)
+        if managed_path:
+            local_path = managed_path
+            ref_type = MEDIA_REF_LOCAL_PATH
 
     if mode in {"dashscope_multimodal_message", "dashscope_image_to_video"}:
         return _resolve_dashscope_image(

@@ -59,6 +59,45 @@ def test_dashscope_image_local_without_oss_uses_data_uri(tmp_path):
     assert ref == "uploads/ref.png"
 
 
+@pytest.mark.parametrize("host", ["192.168.8.231:17177", "127.0.0.1:17177", "localhost:17177", "[::1]:17177"])
+def test_managed_private_file_url_uses_local_temp_upload(tmp_path, host):
+    image = _write_output_png(tmp_path, "assets/characters/ref image.png")
+    ref = f"http://{host}/files/assets/characters/ref%20image.png?cache=1"
+    uploaded = []
+
+    def upload(local_path):
+        uploaded.append(local_path)
+        return "oss://dashscope-temp/reference"
+
+    resolved = resolve_media_input(
+        ref, model_name="happyhorse-1.1-r2v", modality="image",
+        project_root=str(tmp_path), uploader=FakeUploader(False),
+        dashscope_temp_url_resolver=upload,
+    )
+    assert uploaded == [str(image)]
+    assert resolved.value == "oss://dashscope-temp/reference"
+    assert resolved.headers[RESOLVE_HEADER_DASHSCOPE_OSS_RESOURCE] == "enable"
+    assert resolved.source_ref == ref
+
+
+@pytest.mark.parametrize("path", ["assets/missing.png", "../secret.png", "%2e%2e/secret.png"])
+def test_invalid_managed_private_file_url_fails_before_provider_call(tmp_path, path):
+    with pytest.raises(ValueError, match="managed media"):
+        resolve_media_input(
+            f"http://192.168.8.231:17177/files/{path}",
+            model_name="happyhorse-1.1-r2v", modality="image", project_root=str(tmp_path),
+        )
+
+
+def test_public_file_url_is_preserved_even_when_local_path_exists(tmp_path):
+    _write_output_png(tmp_path, "assets/reference.png")
+    ref = "https://example.com/files/assets/reference.png"
+    resolved = resolve_media_input(
+        ref, model_name="happyhorse-1.1-r2v", modality="image", project_root=str(tmp_path),
+    )
+    assert resolved.value == ref
+
+
 @pytest.mark.parametrize("modality", ["audio", "video", "reference_video"])
 def test_dashscope_non_image_local_without_oss_uses_temp_url_and_header(tmp_path, modality):
     _write_output_png(tmp_path, "video/ref.mp4")
