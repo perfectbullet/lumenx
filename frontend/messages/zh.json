@@ -1209,6 +1209,7 @@
     },
     "exportTitle": "导出最终视频",
     "exportSubtitle": "已选定 {ready} / {total} 帧，准备合并为最终 MP4。",
+    "partialExportHint": "可只导出部分镜头用于测试，无需全部生成。没有可用视频的镜头将跳过，其余按分镜顺序合并。",
     "framesLabel": "帧",
     "framesReadyLabel": "已完成"
   },

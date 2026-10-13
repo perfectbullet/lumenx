@@ -535,7 +535,7 @@ function ExportPhase({
     onDismissError: () => void;
 }) {
     const ta = useTranslations("assembly");
-    const allReady = framesTotal > 0 && framesReady === framesTotal;
+    const canMerge = framesReady > 0;
     return (
         <div className="space-y-6 max-w-3xl">
             <section className="rounded-xl border border-glass-border bg-glass p-6">
@@ -548,10 +548,13 @@ function ExportPhase({
                         <p className="mt-1 text-body-sm text-text-secondary">
                             {ta("exportSubtitle", { ready: framesReady, total: framesTotal })}
                         </p>
+                        <p className="mt-2 text-xs text-text-muted">
+                            {ta("partialExportHint")}
+                        </p>
                     </div>
                     <button
                         onClick={onMerge}
-                        disabled={isMerging || !allReady}
+                        disabled={isMerging || !canMerge}
                         className="shrink-0 inline-flex items-center gap-2 bg-primary text-white border border-[rgba(100,108,255,0.65)] shadow-[inset_0_1.5px_0_rgba(255,255,255,0.14)] hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2.5 rounded-md font-semibold text-[0.8125rem]"
                     >
                         {isMerging ? <Loader2 size={14} className="animate-spin" /> : <Film size={14} />}

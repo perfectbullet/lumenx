@@ -1209,6 +1209,7 @@
     },
     "exportTitle": "Export Final Video",
     "exportSubtitle": "{ready} / {total} frames selected — ready to merge into the final MP4.",
+    "partialExportHint": "Export a few shots for testing without generating every shot. Shots without available videos are skipped; the rest are merged in storyboard order.",
     "framesLabel": "Frames",
     "framesReadyLabel": "Ready"
   },
