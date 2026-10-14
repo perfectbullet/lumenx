@@ -35,6 +35,9 @@ dist_*/
 # Environment
 .env
 .env.local
+.env.*
+!.env.example
+!.env.*.example
 .venv
 venv/
 
