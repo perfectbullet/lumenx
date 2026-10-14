@@ -37,7 +37,7 @@ LumenX 使用阿里云灵积平台(DashScope)提供 AI 能力。
 
 ### 获取 API Key
 
-1. 访问 [阿里云灵积平台](https://dashscope.aliyun.com/)
+1. 访问 [阿里云百炼控制台](https://bailian.console.aliyun.com/)或[灵积平台](https://dashscope.aliyun.com/)。
 2. 登录您的阿里云账号（没有账号请先注册）
 3. 进入 **控制台** → **API-KEY 管理**
 4. 点击 **创建新的 API-KEY**
