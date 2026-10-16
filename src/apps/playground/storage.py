@@ -1,4 +1,4 @@
-"""Playground storage layer — JSON-file persistence for generation history and templates."""
+"""Playground storage layer — MongoDB / legacy JSON persistence for generation history and templates."""
 
 import json
 import os
@@ -6,6 +6,7 @@ import threading
 from typing import List, Optional
 
 from .models import PlaygroundGeneration, PlaygroundTemplate
+from ...persistence import repository_from_env
 from ...utils import get_logger
 
 logger = get_logger(__name__)
@@ -19,6 +20,7 @@ class PlaygroundStorage:
         self._history: List[PlaygroundGeneration] = []
         self._templates: List[PlaygroundTemplate] = []
         self._lock = threading.RLock()
+        self._repository = repository_from_env()
         self._load()
 
     # ------------------------------------------------------------------
@@ -27,6 +29,11 @@ class PlaygroundStorage:
 
     def _load(self) -> None:
         """Load both JSON files, creating them if missing."""
+        if self._repository is not None:
+            self._history = [PlaygroundGeneration.model_validate(v) for v in self._repository.load("playground_history").values()]
+            self._history.sort(key=lambda item: (item.created_at, item.id))
+            self._templates = [PlaygroundTemplate.model_validate(v) for v in self._repository.load("playground_templates").values()]
+            return
         self._history = self._load_file(self.HISTORY_PATH, PlaygroundGeneration)
         self._templates = self._load_file(self.TEMPLATES_PATH, PlaygroundTemplate)
 
@@ -51,6 +58,10 @@ class PlaygroundStorage:
 
     def _save_file(self, path: str, items: list) -> None:
         with self._lock:
+            if self._repository is not None:
+                collection = "playground_history" if path == self.HISTORY_PATH else "playground_templates"
+                self._repository.save(collection, {item.id: item.model_dump(mode="json") for item in items})
+                return
             try:
                 os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
                 with open(path, "w", encoding="utf-8") as f:

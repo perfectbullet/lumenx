@@ -12,6 +12,9 @@ pydantic>=2.0.0
 pydantic-settings>=2.0.0
 defusedxml>=0.7.1
 
+# Metadata database
+pymongo>=4.10,<5
+
 # Utilities
 python-dotenv>=1.0.0
 requests>=2.31.0

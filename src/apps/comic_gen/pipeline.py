@@ -15,6 +15,7 @@ from .storyboard import StoryboardGenerator
 from .video import VideoGenerator
 from .audio import AudioGenerator
 from .export import ExportManager
+from ...persistence import repository_from_env
 from ...utils import get_logger
 from ...utils.oss_utils import is_object_key
 from ...utils.provider_registry import resolve_provider_backend
@@ -82,7 +83,8 @@ class ComicGenPipeline:
         self.data_file = "output/projects.json"
         self.series_data_file = "output/series.json"
         self.library_data_file = "output/library_assets.json"
-        self._save_lock = threading.RLock()  # Reentrant lock to prevent concurrent file writes
+        self._save_lock = threading.RLock()  # Reentrant lock to prevent concurrent writes
+        self._repository = repository_from_env()
         self.scripts: Dict[str, Script] = self._load_data()
         self.series_store: Dict[str, Series] = self._load_series_data()
         # Project-independent global asset library (lowest resolver layer).
@@ -386,6 +388,8 @@ class ComicGenPipeline:
         return self.scripts.get(script_id)
 
     def _load_data(self) -> Dict[str, Script]:
+        if getattr(self, "_repository", None) is not None:
+            return {k: Script.model_validate(v) for k, v in self._repository.load("projects").items()}
         if not os.path.exists(self.data_file):
             return {}
         try:
@@ -399,6 +403,9 @@ class ComicGenPipeline:
     def _save_data(self):
         """Save data with thread lock to prevent concurrent write issues."""
         with self._save_lock:
+            if getattr(self, "_repository", None) is not None:
+                self._repository.save("projects", {k: v.model_dump(mode="json") for k, v in self.scripts.items()})
+                return
             try:
                 os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
                 with open(self.data_file, 'w') as f:
@@ -3874,6 +3881,8 @@ class ComicGenPipeline:
     # ============================================================
 
     def _load_series_data(self) -> Dict[str, Series]:
+        if getattr(self, "_repository", None) is not None:
+            return {k: Series.model_validate(v) for k, v in self._repository.load("series").items()}
         if not os.path.exists(self.series_data_file):
             return {}
         try:
@@ -3886,6 +3895,9 @@ class ComicGenPipeline:
 
     def _save_series_data_unlocked(self):
         """Save series data without acquiring the lock (caller must hold self._save_lock)."""
+        if getattr(self, "_repository", None) is not None:
+            self._repository.save("series", {k: v.model_dump(mode="json") for k, v in self.series_store.items()})
+            return
         try:
             os.makedirs(os.path.dirname(self.series_data_file) or ".", exist_ok=True)
             with open(self.series_data_file, 'w') as f:
@@ -3903,6 +3915,9 @@ class ComicGenPipeline:
     # ============================================================
 
     def _load_library_data(self) -> GlobalAssetLibrary:
+        if getattr(self, "_repository", None) is not None:
+            data = self._repository.load("asset_libraries")
+            return GlobalAssetLibrary.model_validate(data.get("global", {}))
         if not os.path.exists(self.library_data_file):
             return GlobalAssetLibrary()
         try:
@@ -3915,6 +3930,9 @@ class ComicGenPipeline:
 
     def _save_library_data_unlocked(self):
         """Save global library data without acquiring the lock (caller must hold self._save_lock)."""
+        if getattr(self, "_repository", None) is not None:
+            self._repository.save("asset_libraries", {"global": self.library_store.model_dump(mode="json")})
+            return
         try:
             os.makedirs(os.path.dirname(self.library_data_file) or ".", exist_ok=True)
             with open(self.library_data_file, 'w') as f:

@@ -57,6 +57,14 @@ from dotenv import load_dotenv, set_key
 app = FastAPI(title="AI Comic Gen API")
 logger = logging.getLogger(__name__)
 
+from ...persistence import StorageError, StorageConflict
+
+
+@app.exception_handler(StorageError)
+async def storage_error_handler(request: Request, exc: StorageError):
+    return JSONResponse(status_code=409 if isinstance(exc, StorageConflict) else 503,
+                        content={"detail": str(exc)})
+
 # Setup logging to user directory
 setup_logging()
 
@@ -64,7 +72,8 @@ setup_logging()
 _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 env_path = os.path.join(_project_root, ".env")
 if os.path.exists(env_path):
-    load_dotenv(env_path, override=True)
+    # Explicit process environment wins (deployment overrides and isolated tests).
+    load_dotenv(env_path, override=False)
 
 # Mount playground router AFTER .env is loaded (adapters read API keys from env)
 from ..playground.api import router as playground_router
