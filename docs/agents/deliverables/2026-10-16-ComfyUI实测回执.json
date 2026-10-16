@@ -1,0 +1,185 @@
+{
+  "date": "2026-10-16",
+  "evidence_directory": "docs/agents/context/comfy-modalities-live-20261016",
+  "server_copy": "/data/aigc/lumenx/output/integration_evidence/comfy-modalities-live-20261016",
+  "cases": {
+    "A-tts": {
+      "status": "success",
+      "prompt_id": "c09150c2-e313-498a-abe7-31b52676160e",
+      "elapsed_seconds": 22.44,
+      "outputs": [
+        {
+          "path": "docs/agents/context/comfy-modalities-live-20261016/A-tts/A_tts_00001.flac",
+          "bytes": 137275,
+          "sha256": "61e4d9b480902c17d253076deeb4dff2448a65059fd14f436af6bf9aac0fb04e",
+          "decode_ok": true,
+          "streams": [
+            {
+              "codec_type": "audio",
+              "codec_name": "flac",
+              "r_frame_rate": "0/0",
+              "duration": "4.640000",
+              "sample_rate": "24000",
+              "channels": 1
+            }
+          ]
+        }
+      ]
+    },
+    "B-tts": {
+      "status": "success",
+      "prompt_id": "93ae8f2f-c7d3-4806-83c3-c0befc52b950",
+      "elapsed_seconds": 22.44,
+      "outputs": [
+        {
+          "path": "docs/agents/context/comfy-modalities-live-20261016/B-tts/B_tts_00001.flac",
+          "bytes": 139709,
+          "sha256": "ca59ab2e104fed180fc2c4b24a4bef064b402cf8fc61bcfb35f5ed763667947d",
+          "decode_ok": true,
+          "streams": [
+            {
+              "codec_type": "audio",
+              "codec_name": "flac",
+              "r_frame_rate": "0/0",
+              "duration": "4.800000",
+              "sample_rate": "24000",
+              "channels": 1
+            }
+          ]
+        }
+      ]
+    },
+    "A-image": {
+      "status": "success",
+      "prompt_id": "7bfde903-e141-4b5b-9664-b5ee79ccfc40",
+      "elapsed_seconds": 27.9,
+      "outputs": [
+        {
+          "path": "docs/agents/context/comfy-modalities-live-20261016/A-image/A_image_00001_.png",
+          "bytes": 913271,
+          "sha256": "17100291ba692e512ab211c22bc1774b11d443813a035f022ee4db68480e0caa",
+          "decode_ok": true,
+          "streams": [
+            {
+              "codec_type": "video",
+              "codec_name": "png",
+              "width": 864,
+              "height": 480,
+              "r_frame_rate": "25/1"
+            }
+          ]
+        }
+      ]
+    },
+    "B-image": {
+      "status": "success",
+      "prompt_id": "c9b0f3cf-c15f-49dd-a316-b511b15c943b",
+      "elapsed_seconds": 37.86,
+      "outputs": [
+        {
+          "path": "docs/agents/context/comfy-modalities-live-20261016/B-image/B_image_00001_.png",
+          "bytes": 913271,
+          "sha256": "8b2425f718c19b51e5fa025a506c5d2111168063f9caab2c8b58c04b16795c0e",
+          "decode_ok": true,
+          "streams": [
+            {
+              "codec_type": "video",
+              "codec_name": "png",
+              "width": 864,
+              "height": 480,
+              "r_frame_rate": "25/1"
+            }
+          ]
+        }
+      ]
+    },
+    "A-h3": {
+      "status": "success",
+      "prompt_id": "557775ba-177f-4d5f-9a6b-80c928065923",
+      "elapsed_seconds": 102.27,
+      "outputs": [
+        {
+          "path": "docs/agents/context/comfy-modalities-live-20261016/A-h3/A_h3_00001_.mp4",
+          "bytes": 1413461,
+          "sha256": "543f9968b800c3c7a4aa5773a7d84f43fde6aad58929c1e9917880cc7cf26a5c",
+          "decode_ok": true,
+          "streams": [
+            {
+              "codec_type": "video",
+              "codec_name": "h264",
+              "width": 864,
+              "height": 480,
+              "r_frame_rate": "24/1",
+              "nb_frames": "107",
+              "duration": "4.458333"
+            },
+            {
+              "codec_type": "audio",
+              "codec_name": "aac",
+              "r_frame_rate": "0/0",
+              "nb_frames": "141",
+              "duration": "4.450000",
+              "sample_rate": "32000",
+              "channels": 2
+            }
+          ]
+        }
+      ]
+    },
+    "B-h3": {
+      "status": "success",
+      "prompt_id": "d58a4d10-1aa2-4b90-a76f-0217026922d7",
+      "elapsed_seconds": 102.04,
+      "outputs": [
+        {
+          "path": "docs/agents/context/comfy-modalities-live-20261016/B-h3/B_h3_00001_.mp4",
+          "bytes": 1414154,
+          "sha256": "7c772f67dafc43dca9096392b988bae67e1f66f5377b942ecf2403e61bfe9ddd",
+          "decode_ok": true,
+          "streams": [
+            {
+              "codec_type": "video",
+              "codec_name": "h264",
+              "width": 864,
+              "height": 480,
+              "r_frame_rate": "24/1",
+              "nb_frames": "107",
+              "duration": "4.458333"
+            },
+            {
+              "codec_type": "audio",
+              "codec_name": "aac",
+              "r_frame_rate": "0/0",
+              "nb_frames": "141",
+              "duration": "4.450000",
+              "sample_rate": "32000",
+              "channels": 2
+            }
+          ]
+        }
+      ]
+    },
+    "B-image_edit": {
+      "status": "success",
+      "prompt_id": "815fee6b-3d76-40b1-983c-1d533039199f",
+      "elapsed_seconds": 26.25,
+      "outputs": [
+        {
+          "path": "docs/agents/context/comfy-modalities-live-20261016/B-image_edit/B_image_edit_00001_.png",
+          "bytes": 776652,
+          "sha256": "19a24309ce8769c338134457b11bb24a60d13c29092bfd779c9ae8c591eec405",
+          "decode_ok": true,
+          "streams": [
+            {
+              "codec_type": "video",
+              "codec_name": "png",
+              "width": 864,
+              "height": 480,
+              "r_frame_rate": "25/1"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
