@@ -1,0 +1,17 @@
+{
+  "h3_source": "/home/zj/aigc/ComfyOps/task-archiver/workflows/CS-H3多模态参考导演台工作流-by-autodl-app-v1.json",
+  "h3_source_sha256": "b599af8ca6a8fce97698178f9d05f0c5245a6ba431c673094738cfccf4a67592",
+  "image_source": "/root/zealman-app/workflows/API-B18-Qwenimage2.1.json (previously retrieved via selected-workflows.json)",
+  "image_inventory_sha256": "307c9f9c18def92aa5e77d6b13fc116f0a730ba564fbd886cdbb49a3ba71bbaa",
+  "changes": [
+    "H3 4 s / 0.4MP / 16:9 / single reference; ordinary 20-step sampler retained",
+    "Image 0.4MP, 20 steps, native SaveImage replaces SaveImageAdvanced",
+    "TTS minimal native loader + CustomVoice + SaveAudio; sdpa; auto_download=false"
+  ],
+  "probe_templates": {
+    "qwen-image-2.1-t2i.api.json": "2b53745bb1671463383962145dbc618f6ed5bb5f984f2d80c137bf5393b03599",
+    "qwen-image-2.1-i2i.api.json": "1d5f49a7a3de1c6d4e3411587ac37ef31e3f6b75c2a63ce9f938de5baa4ddbb2",
+    "minimax-h3-ref2va.api.json": "f72a41ad80a17412e5d0669437db0f4bfcb4392c51f19c264a49a97508dfc183",
+    "qwen3-tts-custom-voice.api.json": "2fb3c7173061b7095a3254b9ef9752b09b607040d420503fb43f0826136709dd"
+  }
+}
