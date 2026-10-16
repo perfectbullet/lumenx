@@ -9,10 +9,11 @@ WORKDIR /app
 
 # Copy and install Python dependencies (excluding pywebview)
 COPY requirements-docker.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --index-url https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 # Copy application code
 COPY src/ src/
+COPY scripts/migrate_json_to_mongodb.py scripts/backup_mongodb.py scripts/
 
 # Create output directories
 RUN mkdir -p output/uploads output/video output/assets output/storyboard \
