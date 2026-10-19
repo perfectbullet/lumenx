@@ -1,5 +1,7 @@
 # 剧本编辑器多源调研原始素材笔记（v6.0）
 
+> 2026-10-19代码复核：本文保留2026-07-03的历史调研原貌，文中“纯textarea、无格式导入导出、无版本”等结论不再代表当前仓库。当前已有Tiptap编辑器、Fountain/FDX导入与前端导出、文档快照/恢复；新增后端安排与不采用项见文末补记。竞品价格/市场宣传数字本轮未重新核验，不作为本项目验收依据。
+
 > **项目**：LumenX Studio（tron-comic）  
 > **任务**：task_ivx2bdngoq — 多源调研：开源工具、竞品、业界趋势与参考资料内容采集  
 > **日期**：2026-07-03  
@@ -488,3 +490,19 @@ interface ScriptBlock {
 ---
 
 *报告终：v6.0 为 task_ivx2bdngoq 的多源调研原始素材笔记，覆盖 40+ 信息来源，供 T2 综合分析与展示 HTML 撰写使用。*
+
+## 十三、2026-10-19复核补记：复用现有能力，不重建编辑器
+
+| 历史结论 | 当前代码证据 | 本轮吸收方式 |
+|---|---|---|
+| 只有ScriptProcessor textarea | `ScriptEditor/ScriptEditorShell.tsx`、`hooks/useEditorSetup.ts`及Tiptap依赖已存在；旧入口也仍有代码 | 不再列“从零引入Tiptap”为本期需求；具体入口由前端同事确认，不改前端 |
+| 无规则解析/无Fountain与FDX | `api.py`已有`_parse_fountain`、`_parse_fdx`及`document/import` | 复用解析，补中文场景/人物/对白样例与引用校验；LLM作为补充，继续按现有DeepSeek等业务配置路由 |
+| 无格式导出 | 前端`dialogs/serializers.ts`实现`toFountain/toFDX`；后端`document/export`有PDF/DOCX分支 | 先验证往返与实际输出；PDF缺依赖可能降级HTML、DOCX可能降级TXT，不能只根据扩展名宣称导出成功 |
+| 无历史版本 | `document/snapshots`列表/创建/restore接口及文件快照已存在 | 不重复造编辑稿历史；后续补项目级revision、不可变媒体关联与关键操作检查点 |
+| 应重新设计所有ScriptDocument/Block数据 | 当前Tiptap JSON与Script/Storyboard模型已并存 | 沿现有schema建立文档revision/hash→实体/分镜的派生关系和显式预览/应用，不自动全量覆盖项目 |
+
+保留并吸收“结构化剧本、规则优先、中文适配、用户确认、AI建议可拒绝”的原则。新增能力先输出建议/差异与来源，不让持续性AI改写直接覆盖用户作品；AI拒绝或失败不应阻止已有文本保存。
+
+尚未验收：完整Fountain/FDX互操作、中文字体分页、并发编辑/CRDT、文档与MongoDB项目元数据的生命周期一致性。存在接口不代表生产完备；本轮没有做这些专项测试，也不据本研究中的竞品宣传承诺毫秒解析、固定LLM延迟或效率提升倍数。
+
+CRDT、多Agent共写、内联AI与编辑器样式改造继续作为后续独立工作，不挤入本周后端任务链路。评审及来源见[新增增强材料](../LumenX的后续增强.md#本轮评审结论2026-10-19)。

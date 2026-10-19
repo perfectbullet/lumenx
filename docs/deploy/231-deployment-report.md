@@ -256,6 +256,8 @@ pip install demucs soundfile -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 十、待办 / 后续动作
 
+以下Key配置、磁盘占用和软件安装状态源于原部署检查，不代表10月19日实时状态；本轮未登录服务器复测。元数据与模型证据已按10月16日记录更新。
+
 | 项 | 状态 | 说明 |
 |---|---|---|
 | DeepSeek API Key | ❌ 假值 | `.env` 里 `OPENAI_API_KEY` 需换真实 key |
@@ -263,8 +265,8 @@ pip install demucs soundfile -i https://pypi.tuna.tsinghua.edu.cn/simple
 | Demucs 人声分离 | ❌ 未装 | 需要时用已下载的 wheel + pip install |
 | Kling/Vidu/MuleRouter Key | ❌ 未配 | 按需启用 |
 | 磁盘监控 | ⚠️ 96% | 剩 84GB，demucs+torch 装完多 ~3GB |
-| 数据持久化 | ✅ JSON 文件 | 当前基线；MongoDB 迁移已纳入后续实施计划 |
-| 本地模型 | 后续接入 | 当前基线主要调用云端；后续接入 ComfyUI/H3、图像和 TTS |
+| 数据持久化 | ✅ MongoDB（10月16日更新） | 业务元数据已切至lumenxdb；旧JSON是历史备份，文档编辑稿/快照仍为文件型工件 |
+| 自部署模型 | 已外部实测，业务待接入 | 10月16日A/B的H3、Qwen图像、Qwen3-TTS通过短样本；当前业务adapter/monitor尚未接通 |
 
 ---
 
@@ -278,3 +280,13 @@ zenking 4799  uvicorn app.main:app --workers 1  --port 8000
 ```
 
 lumenx 独占 `17177`（后端）和 `3008`（前端），无冲突。
+
+## 十二、10月19日晨会后的部署边界（方案，未执行）
+
+- 当前延续231上的LumenX API、已使用的MongoDB及受管output目录；将来同仓库另起monitor，独立进程/心跳，媒体目录与配置统一维护。
+- 两个公网ComfyUI实例各有独立GPU；A主要视频，B排队图片/TTS。旧archiver与新monitor必须有唯一调度权威，后续真实切换时核对未完成任务和占用。
+- 本轮不安装OpenCue、Kubernetes/KEDA、MinIO/PostgreSQL、Git LFS或新增质量增强/身份模型；不修改云机、数据库、模型和服务启动方式。
+- 先规范化媒体路径、校验、来源和版本引用；共享对象存储只作为后续可选适配。若采用MinIO需重新核对具体发行/维护和许可，不能把新材料当作采购/部署结论。
+- 文档快照文件不等于项目级备份；运维恢复需同时包含MongoDB、document/history及实际媒体，不能只恢复任一部分；做关联一致性验证。
+
+本周安排见[后端实施安排](../agents/deliverables/2026-10-19-本周后端实施安排.md)，新增建议取舍见[增强材料评审](../LumenX的后续增强.md#本轮评审结论2026-10-19)。
