@@ -40,7 +40,7 @@ function formatSessionLabel(
 }
 
 export default function ResultGallery() {
-  const { history, startGeneration, updateGeneration, useResultAsReference } = usePlaygroundStore();
+  const { history, startGeneration, useResultAsReference } = usePlaygroundStore();
   const t = useTranslations('playground');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('grid');
@@ -78,26 +78,10 @@ export default function ResultGallery() {
         created_at: resp.created_at,
       };
       startGeneration(newGen);
-      // Poll for status
-      const poll = setInterval(async () => {
-        try {
-          const s = await playgroundApi.getGenerationStatus(newGen.id);
-          if (s.status === 'completed' || s.status === 'failed') {
-            clearInterval(poll);
-            const full = await playgroundApi.getGeneration(newGen.id);
-            updateGeneration({
-              ...newGen,
-              status: full.status as PlaygroundGeneration['status'],
-              outputs: full.outputs.map((o) => ({ id: o.id, media_path: o.media_path, media_type: o.media_type as 'image' | 'video', thumbnail_path: o.thumbnail_path, saved_to_library: o.saved_to_library })),
-              error: full.error,
-            });
-          }
-        } catch { clearInterval(poll); }
-      }, 2000);
     } catch (err) {
       console.error('[Playground] Retry failed:', err);
     }
-  }, [startGeneration, updateGeneration]);
+  }, [startGeneration]);
 
   const handleDelete = useCallback(async (gen: PlaygroundGeneration) => {
     try {

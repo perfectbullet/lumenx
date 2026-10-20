@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Sparkles } from 'lucide-react';
 import ModeSelector from './ModeSelector';
@@ -9,6 +9,7 @@ import MediaInput from './MediaInput';
 import PromptInput from './PromptInput';
 import ParameterBar from './ParameterBar';
 import ResultGallery from './ResultGallery';
+import { useGenerationPolling } from './useGenerationPolling';
 import { usePlaygroundStore, type PlaygroundMode, type PlaygroundGeneration, type QueuedRequest } from './usePlaygroundStore';
 import { playgroundApi, type PlaygroundGenerationResponse } from '@/lib/api';
 
@@ -29,9 +30,6 @@ const MODE_LABELS: Record<PlaygroundMode, string> = {
  *  t2i also shows optional media input — when provided, it auto-becomes i2i. */
 const MODES_WITH_MEDIA: PlaygroundMode[] = ['i2i', 'i2v', 'r2v', 'v2v'];
 const MODES_WITH_OPTIONAL_MEDIA: PlaygroundMode[] = ['t2i'];
-
-/** Polling interval for generation status (ms) */
-const POLL_INTERVAL = 2000;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,7 +77,6 @@ export default function PlaygroundPage() {
   const setHistory = usePlaygroundStore((s) => s.setHistory);
   const setTemplates = usePlaygroundStore((s) => s.setTemplates);
   const startGeneration = usePlaygroundStore((s) => s.startGeneration);
-  const updateGeneration = usePlaygroundStore((s) => s.updateGeneration);
   const enqueueRequest = usePlaygroundStore((s) => s.enqueueRequest);
   const markDispatching = usePlaygroundStore((s) => s.markDispatching);
   const removeFromQueue = usePlaygroundStore((s) => s.removeFromQueue);
@@ -87,7 +84,7 @@ export default function PlaygroundPage() {
   const activeCount = usePlaygroundStore((s) => s.activeGenerationIds.length);
   const maxConcurrent = usePlaygroundStore((s) => s.maxConcurrent);
 
-  const pollTimers = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+  useGenerationPolling();
 
   // ─── Fetch initial data on mount ───────────────────────────────────────────
 
@@ -118,44 +115,6 @@ export default function PlaygroundPage() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // ─── Cleanup poll timers ───────────────────────────────────────────────────
-
-  useEffect(() => {
-    return () => {
-      pollTimers.current.forEach((timer) => clearInterval(timer));
-      pollTimers.current.clear();
-    };
-  }, []);
-
-  // ─── Status poller ─────────────────────────────────────────────────────────
-
-  const startPolling = useCallback((generationId: string) => {
-    // Prevent duplicate timers
-    if (pollTimers.current.has(generationId)) return;
-
-    const timer = setInterval(async () => {
-      try {
-        const statusResp = await playgroundApi.getGenerationStatus(generationId);
-        const isTerminal = statusResp.status === 'completed' || statusResp.status === 'failed';
-
-        // Fetch full generation data for complete update
-        const fullResp = await playgroundApi.getGeneration(generationId);
-        updateGeneration(toGeneration(fullResp));
-
-        if (isTerminal) {
-          clearInterval(timer);
-          pollTimers.current.delete(generationId);
-        }
-      } catch (err) {
-        console.error('[Playground] Poll failed for', generationId, err);
-        clearInterval(timer);
-        pollTimers.current.delete(generationId);
-      }
-    }, POLL_INTERVAL);
-
-    pollTimers.current.set(generationId, timer);
-  }, [updateGeneration]);
 
   // ─── Generate handler — enqueue a request; the dispatcher runs it ──────────
 
@@ -190,14 +149,11 @@ export default function PlaygroundPage() {
       const gen = toGeneration(resp);
       startGeneration(gen);
       removeFromQueue(req.id);
-      if (gen.status !== 'completed' && gen.status !== 'failed') {
-        startPolling(gen.id);
-      }
     } catch (err) {
       console.error('[Playground] Dispatch failed:', err);
       removeFromQueue(req.id);
     }
-  }, [startGeneration, removeFromQueue, startPolling]);
+  }, [startGeneration, removeFromQueue]);
 
   // Pump: dispatch pending requests up to the concurrency limit.
   const pump = useCallback(() => {
