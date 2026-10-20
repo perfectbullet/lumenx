@@ -4,7 +4,7 @@ Supports two backends:
 - MuleRun CLI mode: uses `mulerun studio run` subprocess (auth via MULERUN_TOKEN or browser login)
 - MuleRouter HTTP mode: direct API calls to api.mulerouter.ai (auth via MULEROUTER_API_KEY)
 
-Priority: MULERUN_TOKEN / CLI available → CLI mode; else → HTTP API mode.
+Priority: MULEROUTER_API_KEY → HTTP API mode; else → authenticated CLI mode.
 """
 
 import base64
@@ -109,21 +109,17 @@ def _is_mulerun_cli_available() -> bool:
     return False
 
 
-_cli_available_cache: Optional[bool] = None
-
-
 def _use_cli_backend() -> bool:
     """Determine whether to use CLI or HTTP API backend.
 
     Priority: MULEROUTER_API_KEY (HTTP) > CLI fallback.
     CLI is used only when no API key is configured and mulerun is logged in.
     """
-    global _cli_available_cache
     if os.getenv("MULEROUTER_API_KEY"):
         return False
-    if _cli_available_cache is None:
-        _cli_available_cache = _is_mulerun_cli_available()
-    return _cli_available_cache
+    # Login/logout can happen while the desktop backend is running. A cached
+    # result would keep routing to the wrong backend until the app restarts.
+    return _is_mulerun_cli_available()
 
 
 # ---------------------------------------------------------------------------
@@ -195,7 +191,11 @@ def _resolve_local_image_path(img_url: Optional[str] = None, img_path: Optional[
 def _get_api_key() -> str:
     key = os.getenv("MULEROUTER_API_KEY", "")
     if not key:
-        raise RuntimeError("MULEROUTER_API_KEY not set in environment")
+        raise RuntimeError(
+            "MuleRouter credentials missing. Open Settings > MuleRouter and set "
+            "MULEROUTER_API_KEY, or install and log in to MuleRun CLI, then retry. "
+            "请在设置中配置 MuleRouter API Key，或安装并登录 MuleRun CLI 后重试。"
+        )
     return key
 
 
