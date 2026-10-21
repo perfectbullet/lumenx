@@ -158,13 +158,13 @@ class Backend:
     def show_env(self):
         print(f"Config: {ROOT / '.env'} (file values + process overrides; secrets never printed)")
         print(f"Python: {sys.executable}\nNO_PROXY: {redact(self.env['NO_PROXY'], self.env)}")
-        keys = ["DASHSCOPE_API_KEY", "KLING_ACCESS_KEY", "KLING_SECRET_KEY", "VIDU_API_KEY",
+        keys = ["DASHSCOPE_API_KEY", "OPENAI_API_KEY", "KLING_ACCESS_KEY", "KLING_SECRET_KEY", "VIDU_API_KEY",
                 "MULEROUTER_API_KEY", "MULERUN_TOKEN", "ALIBABA_CLOUD_ACCESS_KEY_ID",
                 "ALIBABA_CLOUD_ACCESS_KEY_SECRET", "OSS_BUCKET_NAME", "OSS_ENDPOINT",
                 "MONGODB_URI", "LUMENX_MONGODB_URI", "HTTP_PROXY", "HTTPS_PROXY"]
         for key in keys:
             print(f"{key}: {'SET' if self.env.get(key, '').strip() else 'UNSET'}")
-        for key in sorted(k for k in self.env if k.endswith("_BASE_URL") or k in ("LUMENX_STORAGE_BACKEND", "OSS_ENABLE")):
+        for key in sorted(k for k in self.env if k.endswith("_BASE_URL") or k in ("LUMENX_STORAGE_BACKEND", "MONGODB_DATABASE", "LLM_PROVIDER", "OPENAI_MODEL", "OSS_ENABLE")):
             print(f"{key}: {redact(self.env[key], self.env)}")
         print("Restart after editing .env; this checks the next start, not in-memory hot changes.")
         return 0
@@ -186,7 +186,8 @@ class Backend:
 
     def models(self, provider):
         from src.utils.endpoints import PROVIDER_DEFAULTS
-        targets = list(PROVIDER_DEFAULTS) if provider == "all" else [provider.upper()]
+        defaults = {**PROVIDER_DEFAULTS, "OPENAI": "https://api.openai.com/v1"}
+        targets = list(defaults) if provider == "all" else [provider.upper()]
         failures = 0
         print("Read-only GET probes; no generation/billing. HTTP reachability is not model capability validation.")
         # Use the same effective proxy/environment settings as the launched backend.
@@ -195,11 +196,14 @@ class Backend:
             session.trust_env = False
             from requests.utils import should_bypass_proxies
             for name in targets:
-                base = self.env.get(name + "_BASE_URL") or PROVIDER_DEFAULTS[name]
+                base = self.env.get(name + "_BASE_URL") or defaults[name]
                 headers = {}
                 if name == "DASHSCOPE":
                     key = self.env.get("DASHSCOPE_API_KEY")
                     url = base.rstrip("/") + "/compatible-mode/v1/models"
+                elif name == "OPENAI":
+                    key = self.env.get("OPENAI_API_KEY")
+                    url = base.rstrip("/") + "/models"
                 elif name == "KLING":
                     key = self.env.get("KLING_ACCESS_KEY")
                     secret = self.env.get("KLING_SECRET_KEY")
@@ -225,7 +229,7 @@ class Backend:
                     with session.get(url, headers=headers, timeout=(5, 10), allow_redirects=False,
                                      stream=True, proxies=proxies) as response:
                         code = response.status_code
-                        result, failed = classify_http(code, name in ("DASHSCOPE", "KLING"))
+                        result, failed = classify_http(code, name in ("DASHSCOPE", "KLING", "OPENAI"))
                         failures += failed
                         print(f"{name}: HTTP {code} — {result}")
                 except requests.RequestException as exc:
@@ -262,7 +266,7 @@ def main():
     parser.add_argument("--reload", action="store_true", help="Enable dev auto-reload on start/restart (default off)")
     parser.add_argument("-n", "--lines", type=int, default=50)
     parser.add_argument("-f", "--follow", action="store_true")
-    parser.add_argument("--provider", choices=["all", "dashscope", "kling", "vidu", "mulerouter"], default="all")
+    parser.add_argument("--provider", choices=["all", "dashscope", "openai", "kling", "vidu", "mulerouter"], default="all")
     args = parser.parse_args()
     if not 1 <= args.port <= 65535 or args.timeout < 1 or args.lines < 1:
         parser.error("Invalid port, timeout or line count")
