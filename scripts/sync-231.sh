@@ -1,13 +1,13 @@
 #!/bin/bash
 # Sync LumenX code -> 192.168.8.231:/data/aigc/lumenx
-# Usage: ./rsync_231.sh [--dry-run] [--delete]
+# Usage: ./scripts/sync-231.sh [--dry-run] [--delete]
 #   --dry-run  只预览不实际传输
 #   --delete   同时删除远端 stale 文件（默认不带，保护远端手动创建的文件）
 set -euo pipefail
 
 REMOTE_HOST="zenking@192.168.8.231"
 REMOTE_DIR="/data/aigc/lumenx"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 EXCLUDE_FILE="$(mktemp)"
 trap 'rm -f "$EXCLUDE_FILE"' EXIT
@@ -26,6 +26,7 @@ __pycache__/
 *.pyo
 output/
 logs/
+scripts/archive/
 .env
 .env.local
 .env.*
@@ -61,5 +62,5 @@ rsync -avz "${ARGS[@]}" \
 echo ""
 echo "==> Done."
 echo "    SSH in: ssh $REMOTE_HOST"
-echo "    First time setup:  cd $REMOTE_DIR && bash deploy/setup_231.sh"
-echo "    Start services:    cd $REMOTE_DIR && bash deploy/start_231.sh"
+echo "    First time setup:  cd $REMOTE_DIR && bash scripts/archive/2026-10-21/deploy/setup_231.sh"
+echo "    Manage backend:    cd $REMOTE_DIR && ./backend.sh start --reload"

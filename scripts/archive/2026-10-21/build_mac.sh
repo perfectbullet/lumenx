@@ -3,6 +3,7 @@
 # Mac 打包脚本 - 使用 PyInstaller 打包
 
 set -e
+export PIP_INDEX_URL="${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}"
 
 echo "======================================"
 echo "开始 Mac 打包流程"

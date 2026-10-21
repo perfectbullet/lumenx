@@ -208,7 +208,7 @@ pip install -r requirements.txt
 mkdir -p output/uploads
 
 # Start backend server
-./start_backend.sh
+./backend.sh start --reload
 # or
 python -m uvicorn src.apps.comic_gen.api:app --reload --host 0.0.0.0 --port 17177
 
@@ -246,7 +246,7 @@ python scripts/validate_model_catalog.py
 ### Full Development Mode
 ```bash
 # Terminal 1: Start backend
-./start_backend.sh
+./backend.sh start --reload
 
 # Terminal 2: Start frontend
 cd frontend && npm run dev
@@ -436,7 +436,7 @@ Strong success criteria enable autonomous looping; vague criteria like "make it 
 - Video merge failures: Check if video files exist and have proper paths
 
 ### Logs
-- Backend logs appear in terminal when running start_backend.sh
+- Backend logs: `./backend.sh logs -f` (background service logs in `logs/backend.log`)
 - Desktop app logs saved to: `~/.lumen-x/logs/app.log`
 
 ## Deployment

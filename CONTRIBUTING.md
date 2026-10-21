@@ -203,7 +203,7 @@ flake8 src/
 cd frontend && npm run lint
 
 # Verify builds
-./build_mac.sh  # or build_windows.ps1 on Windows
+./scripts/archive/2026-10-21/build_mac.sh  # or build_windows.ps1 on Windows
 ```
 
 ### 2. Update Documentation

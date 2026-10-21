@@ -30,13 +30,13 @@ Windows-specific:
 Ensure the build script is executable:
 
 ```bash
-chmod +x build_mac.sh
+chmod +x scripts/archive/2026-10-21/build_mac.sh
 ```
 
 Run the macOS build:
 
 ```bash
-./build_mac.sh
+./scripts/archive/2026-10-21/build_mac.sh
 ```
 
 Expected build flow:

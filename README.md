@@ -135,7 +135,7 @@ npm run dev
 ```bash
 # 后端
 pip install -r requirements.txt
-./start_backend.sh  # http://localhost:17177
+./backend.sh start --reload  # http://localhost:17177
 
 # 前端
 cd frontend && npm install && npm run dev  # http://localhost:3008

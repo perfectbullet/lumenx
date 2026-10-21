@@ -26,13 +26,13 @@ description: LumenX Studio 桌面应用构建流程 - macOS DMG 和 Windows EXE 
 ### 1. 确保构建脚本有执行权限
 
 ```bash
-chmod +x build_mac.sh
+chmod +x scripts/archive/2026-10-21/build_mac.sh
 ```
 
 ### 2. 执行构建
 
 ```bash
-./build_mac.sh
+./scripts/archive/2026-10-21/build_mac.sh
 ```
 
 **构建流程:**

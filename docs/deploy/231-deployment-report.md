@@ -2,6 +2,8 @@
 
 **2026-10-16 更新**：后端元数据已迁移至 MongoDB `lumenxdb`；4 个项目、1 个系列和共享资产保留，前端服务未改动。环境变量及回滚点见 [MongoDB 迁移与运维说明](../agents/deliverables/2026-10-16-MongoDB迁移与运维说明.md)。下方硬件/环境表仍为原部署记录。
 
+**2026-10-21 更新**：后端统一管理入口改为 `backend.sh`，旧脚本已归档；操作说明见 [后端管理](backend-management.md)。
+
 **原部署记录时间**：2026-10-12 18:40；2026-10-14 整理提交，未重新执行线上验证。
 **部署用户**：zenking
 **部署目录**：`/data/aigc/lumenx`
@@ -159,11 +161,11 @@ pip install demucs soundfile -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 | 文件 | 用途 |
 |---|---|
-| `rsync_231.sh` | 本地 → 231 一键代码同步 |
+| `scripts/sync-231.sh` | 本地 → 231 一键代码同步 |
 | `.env.231.example` | 无密钥环境变量模板 |
-| `deploy/setup_231.sh` | 一次性环境安装 |
-| `deploy/start_231.sh` | 启动服务 |
-| `deploy/stop_231.sh` | 停止服务 |
+| `scripts/archive/2026-10-21/deploy/setup_231.sh` | 一次性环境安装历史脚本 |
+| `backend.sh` | 后端启动 / 停止 / 重启 / 状态 / 日志 / 配置 / 连通检查 |
+| `scripts/archive/2026-10-21/` | 旧联合启停与构建脚本归档 |
 
 ### rsync 排除规则
 
@@ -209,24 +211,24 @@ frontend/dist/ frontend/out/
 ```bash
 # === 代码同步 ===
 cd /home/zj/aigc/lumenx
-./rsync_231.sh                    # 同步代码到 231
-./rsync_231.sh --dry-run          # 预览不传
-./rsync_231.sh --delete           # 同步并删除远端 stale 文件
+./scripts/sync-231.sh                    # 同步代码到 231
+./scripts/sync-231.sh --dry-run          # 预览不传
+./scripts/sync-231.sh --delete           # 同步并删除远端 stale 文件
 
 # === SSH 上去操作 ===
 ssh zenking@192.168.8.231
 cd /data/aigc/lumenx
 
 # === 服务管理 ===
-bash deploy/start_231.sh          # 启动（自动 source conda + nvm）
-bash deploy/stop_231.sh           # 停止（PID 文件 + 按项目目录限定的进程检查）
+./backend.sh start --reload       # 后台启动后端（开发模式）
+./backend.sh stop                 # 仅停止当前项目后端
 
 # === 查看日志 ===
-tail -f logs/backend.log logs/frontend.log
+./backend.sh logs -f              # 后端日志脱敏查看
 
 # === 换 API Key ===
 vi .env                            # 替换 sk-dummy-placeholder
-bash deploy/stop_231.sh && bash deploy/start_231.sh  # .env 变化必须手动 restart
+./backend.sh restart --reload     # .env 变化必须手动 restart
 
 # === 重装 demucs（人声分离）===
 source ~/miniconda3/etc/profile.d/conda.sh && conda activate lumenx

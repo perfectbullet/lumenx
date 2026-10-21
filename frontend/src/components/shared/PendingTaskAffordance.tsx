@@ -363,7 +363,7 @@ export function DiagnoseModal({ taskId, elapsedLabel, onClose }: DiagnoseModalPr
                         </div>
                         <ol className="list-decimal space-y-1 pl-4">
                             <li>Press F5 to refresh — polling may have stalled.</li>
-                            <li>If backend is unreachable, the desktop app or <code className="rounded bg-elevated px-1 font-mono text-[0.65625rem]">./start_backend.sh</code> may have stopped. Restart it.</li>
+                            <li>If backend is unreachable, the desktop app or <code className="rounded bg-elevated px-1 font-mono text-[0.65625rem]">./backend.sh start --reload</code> may have stopped. Restart it.</li>
                             <li>Look at the red rows above for the immediate cause (provider auth, network, model misuse).</li>
                             <li>Backend restart wipes in-memory tasks; a stuck task is automatically marked failed at startup, so retry usually works.</li>
                         </ol>
