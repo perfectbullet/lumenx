@@ -175,7 +175,7 @@ class Backend:
         from collections import deque
         with self.logfile.open(errors="replace") as log:
             for line in deque(log, maxlen=count):
-                print(redact(line.rstrip(), self.env)[:2000])
+                print(redact(line.rstrip(), self.env)[:2000], flush=True)
             while follow:
                 line = log.readline()
                 if line:
